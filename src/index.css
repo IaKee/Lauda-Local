@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Light Theme Defaults (matching theme.py LIGHT) */
+  --lauda-canvas: #F4F6FA;
+  --lauda-paper: #FFFFFF;
+  --lauda-surface: #F7F9FC;
+  --lauda-sidebar: #EDF0F5;
+  --lauda-nav-active: #FFFFFF;
+  --lauda-field: #FFFFFF;
+  --lauda-ink: #12151C;
+  --lauda-ink-soft: #4A5163;
+  --lauda-line: #D9DEE7;
+  --lauda-muted: #BFC7D4;
+  --lauda-accent: #1F7A73;
+  --lauda-accent-warm: #B26A00;
+  --lauda-danger: #B3261E;
+  --lauda-success: #1F7A73;
+  --lauda-primary: #1F7A73;
+  --lauda-primary-active: #186963;
+  --lauda-primary-text: #FFFFFF;
+  --lauda-button: #EDF0F5;
+  --lauda-button-active: #DFE4EC;
+}
+
+.dark {
+  /* Dark Theme Overrides (matching theme.py DARK) */
+  --lauda-canvas: #0F1218;
+  --lauda-paper: #171B23;
+  --lauda-surface: #1C222C;
+  --lauda-sidebar: #12161D;
+  --lauda-nav-active: #232A36;
+  --lauda-field: #1F242E;
+  --lauda-ink: #E8EAF0;
+  --lauda-ink-soft: #9AA3B4;
+  --lauda-line: #2B313D;
+  --lauda-muted: #3B4351;
+  --lauda-accent: #5ECDC3;
+  --lauda-accent-warm: #FFB02E;
+  --lauda-danger: #FF6B60;
+  --lauda-success: #5ECDC3;
+  --lauda-primary: #2A8C84;
+  --lauda-primary-active: #34A79D;
+  --lauda-primary-text: #FFFFFF;
+  --lauda-button: #242A35;
+  --lauda-button-active: #2F3745;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--lauda-line);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lauda-ink-soft);
+}
