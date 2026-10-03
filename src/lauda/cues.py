@@ -142,7 +142,7 @@ def _join(
 
 def _split_by_words(cue: Cue, maximo: float, max_chars: int) -> list[Cue]:
     """Parte pelo tempo real das palavras — o corte cai onde a fala respira."""
-    pedacos: list[Cue] = []
+    grupos_palavras: list[list[WordInfo]] = []
     atual: list[WordInfo] = []
     letras = 0
     for palavra in cue.words:
@@ -150,14 +150,49 @@ def _split_by_words(cue: Cue, maximo: float, max_chars: int) -> list[Cue]:
         longo_demais = atual and (palavra.end - atual[0].start) > maximo
         cheio_demais = atual and letras + tamanho > max_chars
         if longo_demais or cheio_demais:
-            pedacos.append(_cue_de_palavras(atual, cue.speaker))
+            grupos_palavras.append(atual)
             atual = []
             letras = 0
         atual.append(palavra)
         letras += tamanho
     if atual:
-        pedacos.append(_cue_de_palavras(atual, cue.speaker))
-    return pedacos or [cue]
+        grupos_palavras.append(atual)
+
+    if not grupos_palavras:
+        return [cue]
+
+    palavras_texto = cue.text.split()
+    total_palavras_texto = len(palavras_texto)
+    total_words_info = len(cue.words)
+
+    pedacos: list[Cue] = []
+    w_index = 0
+    words_info_acumuladas = 0
+
+    for idx, grupo in enumerate(grupos_palavras):
+        words_info_acumuladas += len(grupo)
+        if total_words_info > 0 and total_palavras_texto > 0:
+            if idx == len(grupos_palavras) - 1:
+                next_w_index = total_palavras_texto
+            else:
+                next_w_index = round(total_palavras_texto * words_info_acumuladas / total_words_info)
+            chunk_words = palavras_texto[w_index:next_w_index]
+            w_index = next_w_index
+            text = " ".join(chunk_words) if chunk_words else " ".join(p.word.strip() for p in grupo)
+        else:
+            text = " ".join(p.word.strip() for p in grupo)
+
+        pedacos.append(
+            Cue(
+                start=grupo[0].start,
+                end=grupo[-1].end,
+                text=text.strip(),
+                speaker=cue.speaker,
+                words=list(grupo),
+            )
+        )
+
+    return pedacos
 
 
 def _cue_de_palavras(palavras: list[WordInfo], speaker: str | None) -> Cue:

@@ -227,3 +227,49 @@ def test_o_rotulo_do_falante_conta_no_orcamento():
         if linha and "-->" not in linha and not linha.isdigit()
     ]
     assert max(len(linha) for linha in linhas) <= 42, "nenhuma linha estoura a largura"
+
+
+def test_texto_1para1_paridade_legenda_e_texto_corrido():
+    """BL-01: texto(srt) == texto(vtt) == texto(transcript.txt) == BLOCO A do laudo."""
+    import re
+    from lauda.subtitles import render_srt, render_vtt
+    from lauda.report import render_plain_transcript, _paragraphs
+    from lauda.types import JobResult, SourceInfo, ProcessingInfo, CoverageInfo, DiarizationInfo, DiagnosticsInfo, StatsInfo
+
+    segmentos = [
+        _seg(0, 0.0, 3.5, "Olá, bem-vindo ao teste de transcrição!", speaker="SPEAKER_00", words=_palavras("Olá, bem-vindo ao teste de transcrição!", 0.0, 3.5)),
+        _seg(1, 3.6, 8.0, "Este é o segundo segmento com uma frase mais longa contendo pontuação.", speaker="SPEAKER_01", words=_palavras("Este é o segundo segmento com uma frase mais longa contendo pontuação.", 3.6, 8.0)),
+    ]
+
+    srt_str = render_srt(segmentos)
+    vtt_str = render_vtt(segmentos)
+
+    res = JobResult(
+        source=SourceInfo(name="test.mp4", path="/tmp/test.mp4", size_bytes=100, sha256="abc"),
+        processing=ProcessingInfo(engine="test", model="tiny", device="cpu", compute_type="int8"),
+        coverage=CoverageInfo(analyzed=True, ratio=1.0, covered_seconds=8.0, silence_seconds=0.0, duration=8.0),
+        diarization=DiarizationInfo(available=True, backend="test", speaker_count=2),
+        diagnostics=DiagnosticsInfo(),
+        stats=StatsInfo(),
+        segments=segmentos,
+    )
+
+    transcript_str = render_plain_transcript(res)
+    bloco_a_str = " ".join(_paragraphs(segmentos))
+
+    def _norm(txt: str) -> str:
+        txt = re.sub(r"WEBVTT", "", txt)
+        txt = re.sub(r"^\d+\s*$", "", txt, flags=re.MULTILINE)
+        txt = re.sub(r"\d{2}:\d{2}:\d{2}[,.]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[,.]\d{3}", "", txt)
+        txt = re.sub(r"\[SPEAKER_[^\]]+\]", "", txt)
+        return " ".join(txt.split())
+
+    norm_srt = _norm(srt_str)
+    norm_vtt = _norm(vtt_str)
+    norm_transcript = _norm(transcript_str)
+    norm_bloco_a = _norm(bloco_a_str)
+
+    assert norm_srt == norm_vtt
+    assert norm_srt == norm_transcript
+    assert norm_srt == norm_bloco_a
+
